@@ -34,8 +34,8 @@ void LuantiClient_connect(LuantiClient* client, char* password, char* address, u
     if (!n_connect(address, port, &client->connection_fd))  {
         return;
     }
-    login(client, password);
     client->connected = true;
+    login(client, password);
 }
 
 void LuantiClient_disconnect(LuantiClient* client) {
@@ -50,8 +50,8 @@ static void login(LuantiClient* client, char* password) {
     obtain_peer_id(client);
     if (client->peer_id == 0) {
         LuantiClient_disconnect(client);
+        return;
     }
-    printf("peer id: %d\n", client->peer_id);
 
     toserver_init(client);
 
