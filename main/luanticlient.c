@@ -95,6 +95,7 @@ static void toserver_init(LuantiClient* client) {
     pkt.junk = 0;
     pkt.name_len = client->username_len;
     uint8_t* buff = malloc(sizeof(pkt) + client->username_len);
+    assert(buff != NULL);
     memcpy(buff, &pkt, sizeof(pkt));
     memcpy(buff + sizeof(pkt), client->username, client->username_len);
     n_send(buff, sizeof(pkt) + client->username_len, client->connection_fd);
@@ -141,6 +142,7 @@ static void receive_toclient_srp_bytes_s_b(LuantiClient* client, sp_toclient_srp
     //Receive
     const size_t s_offset = sizeof(sp_pkt_header) + 2 * sizeof(uint16_t);
     uint8_t* recvbuf = malloc(MAX_PKT_SIZE);
+    assert(recvbuf != NULL);
 
     cp_reliable_header* pkt_header = (cp_reliable_header*) recvbuf;
     pkt_header->command = 0;
@@ -279,6 +281,7 @@ static void handle_toclient_chat_message(LuantiClient* client, void* buffer, siz
 
     if (total_size - size < 2) {
         msg = calloc(chatpkt->msg_len + 1, sizeof(wchar_t));
+        assert(msg != NULL);
         memcpy(msg, buffer + sizeof(sp_toclient_chat_message) + 1, chatpkt->msg_len * sizeof(wchar_t));
     } else {
         msg = buffer + sizeof(sp_toclient_chat_message) + 1;
@@ -301,6 +304,7 @@ void LuantiClient_send_chatmesage(LuantiClient* client, wchar_t* chatmessage) {
     msg_pkt.len = wcslen(chatmessage);
 
     uint8_t* outbuff = malloc(sizeof(msg_pkt) + msg_pkt.len * sizeof(wchar_t));
+    assert(outbuff != NULL);
     memcpy(outbuff, &msg_pkt, sizeof(msg_pkt));
 
     // We can't just memcpy as we need to invert the byte order of every character
