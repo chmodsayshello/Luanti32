@@ -20,7 +20,7 @@
 static void obtain_peer_id(LuantiClient* client);
 static void toserver_init(LuantiClient* client);
 static void toserver_srp_bytes_a (LuantiClient* client, char* password, struct SRPUser** srpuser);
-static void receive_toclient_srp_bytes_s_B(LuantiClient* client, sp_toclient_srp_bytes_s_b* bytes_sb);
+static void receive_toclient_srp_bytes_s_b(LuantiClient* client, sp_toclient_srp_bytes_s_b* bytes_sb);
 static void toserver_srp_bytes_m(LuantiClient* client, struct SRPUser* srpuser, sp_toclient_srp_bytes_s_b* sb);
 static void toserver_init2(LuantiClient* client);
 static void toserver_client_Ready(LuantiClient* client);
@@ -59,7 +59,7 @@ static void login(LuantiClient* client, char* password) {
     toserver_srp_bytes_a(client, password, &srpuser);
 
     sp_toclient_srp_bytes_s_b bytes_sb;
-    receive_toclient_srp_bytes_s_B(client, &bytes_sb);
+    receive_toclient_srp_bytes_s_b(client, &bytes_sb);
 
     toserver_srp_bytes_m(client, srpuser, &bytes_sb);
 
@@ -137,15 +137,21 @@ static void toserver_srp_bytes_a (LuantiClient* client, char* password, struct S
     n_send(sendbuff, sizeof(bytesa) - sizeof(char*) + bytes_len, client->connection_fd);
 }
 
-static void receive_toclient_srp_bytes_s_B(LuantiClient* client, sp_toclient_srp_bytes_s_b* bytes_sb) {
+static void receive_toclient_srp_bytes_s_b(LuantiClient* client, sp_toclient_srp_bytes_s_b* bytes_sb) {
     //Receive
     const size_t s_offset = sizeof(sp_pkt_header) + 2 * sizeof(uint16_t);
     uint8_t* recvbuf = malloc(MAX_PKT_SIZE);
-    while(1) {
+
+    cp_reliable_header* pkt_header = (cp_reliable_header*) recvbuf;
+    pkt_header->command = 0;
+
+    // TODO: timeout
+    while(pkt_header->command != CMD_TOCLIENT_SRP_BYTES_S_B) {
         memset(recvbuf, 0, MAX_PKT_SIZE);
-        if(n_read(recvbuf, MAX_PKT_SIZE, client->connection_fd) > 200) {
-            break;
+        if (n_read(recvbuf, MAX_PKT_SIZE, client->connection_fd) < sizeof(sp_toclient_srp_bytes_s_b)) {
+            continue;
         }
+        pkt_header = (cp_reliable_header*) recvbuf;
     }
 
     memcpy(bytes_sb, recvbuf, s_offset);

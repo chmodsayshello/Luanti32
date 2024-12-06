@@ -42,6 +42,7 @@ PKTSTRUCT TOCLIENT_SRP_BYTES_S_B {
     uint16_t size_b;
     uint8_t* b; // stored on the heap, so free!
 } sp_toclient_srp_bytes_s_b;
+#define CMD_TOCLIENT_SRP_BYTES_S_B 0x60
 
 #define CMD_TOCLIENT_CHAT_MESSAGE 0x2f
 PKTSTRUCT PACK TOCLIENT_CHAT_MESSAGE {
