@@ -9,6 +9,9 @@ This project is in a VERY early stage of development! It has been quickly thrown
 
 Also note that as of right now most of the test main file is WiFi code directly copied from Espressif (licensed under public domain)
 
+## Build Instructions
+ - Comming soon
+
 ## Credits
 
  - Espressif for providing the public domain wifi code mentioned above
