@@ -138,7 +138,7 @@ static void toserver_srp_bytes_a (LuantiClient* client, char* password, struct S
 }
 
 static void receive_toclient_srp_bytes_s_B(LuantiClient* client, sp_toclient_srp_bytes_s_b* bytes_sb) {
-    //RECIEVE
+    //Receive
     const size_t s_offset = sizeof(sp_pkt_header) + 2 * sizeof(uint16_t);
     uint8_t* recvbuf = malloc(MAX_PKT_SIZE);
     while(1) {
@@ -261,7 +261,7 @@ static void acknowledge_packet(LuantiClient* client, uint16_t seqnum) {
 }
 
 static void handle_toclient_chat_message(LuantiClient* client, void* buffer, size_t size, size_t total_size) {
-    if (client->callbacks.onChatmessageRecieve == NULL || size < sizeof(sp_toclient_chat_message)) {
+    if (client->callbacks.onChatmessageReceive == NULL || size < sizeof(sp_toclient_chat_message)) {
         // No handler, so no need to parse it properly...
         return;
     }
@@ -279,7 +279,7 @@ static void handle_toclient_chat_message(LuantiClient* client, void* buffer, siz
         msg[chatpkt->msg_len] = '\0';
     }
 
-    client->callbacks.onChatmessageRecieve(client, msg, chatpkt->msg_len);    
+    client->callbacks.onChatmessageReceive(client, msg, chatpkt->msg_len);    
 
     if (total_size - size < 2) {
         free(msg);

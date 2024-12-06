@@ -6,8 +6,8 @@
 struct LuantiClient;
 
 typedef struct LuantiCallbacks {
-    void (*onSeedRecieve) (struct LuantiClient* client, uint64_t seed);
-    void (*onChatmessageRecieve) (struct LuantiClient* client, wchar_t* message, size_t msg_len);
+    void (*onSeedReceive) (struct LuantiClient* client, uint64_t seed);
+    void (*onChatmessageReceive) (struct LuantiClient* client, wchar_t* message, size_t msg_len);
     void (*onForcedDisconnect) (struct LuantiClient* client, char* reason, size_t reason_len, bool reconnect_suggested);
 } LuantiCallbacks;
 

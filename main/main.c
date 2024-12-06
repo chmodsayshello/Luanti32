@@ -163,7 +163,7 @@ void wifi_init_sta(void)
 
 
 
-void onChatmessageRecieve (struct LuantiClient* client, wchar_t* message, size_t msg_len) {
+void onChatmessageReceive (struct LuantiClient* client, wchar_t* message, size_t msg_len) {
     wprintf(L"%ls\n", message);
 }
 
@@ -182,7 +182,7 @@ void app_main(void) {
     LuantiClient* client = calloc(1, sizeof(LuantiClient));
     client->username = PLAYER_NAME;
     client->username_len = strlen(PLAYER_NAME);
-    client->callbacks.onChatmessageRecieve = &onChatmessageRecieve;
+    client->callbacks.onChatmessageReceive = &onChatmessageReceive;
 
     LuantiClient_connect(client, PASSWORD, SERVER_IP, SERVER_PORT);
 
