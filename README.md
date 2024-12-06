@@ -13,4 +13,4 @@ Also note that as of right now most of the test main file is WiFi code directly 
 
  - Espressif for providing the public domain wifi code mentioned above
  - est31 and Tom Cocagne for [implementing  a minimal](https://github.com/est31/csrp-gmp) version of SRP, a tiny adjustment had been made to make this run on an ESP-32 (it tries to use /dev/urandom for filling a buffer if not on Windows)
- - chfast for [their minimal implementation of GMP](https://github.com/est31/csrp-gmp) (dependency of the SRP-libary)
+ - chfast for [their minimal implementation of GMP](https://github.com/chfast/mini-gmp) (dependency of the SRP-libary)
