@@ -6,6 +6,7 @@
 #define TYPE_RELIABLE 3
 
 #include <stdint.h>
+#include <stdbool.h>
 
 PKTSTRUCT PACK sp_pkt_header {
     uint32_t protocol_id;
@@ -53,3 +54,12 @@ PKTSTRUCT PACK TOCLIENT_CHAT_MESSAGE {
     uint16_t msg_len;
     //wstring
 } sp_toclient_chat_message;
+
+PKTSTRUCT PACK TOCLIENT_ACCESS_DENIED {
+    sp_generic_pkt header;
+    uint8_t reason;
+    uint16_t reason_str_len;
+    // string
+    // bool reconnect; // Can't be directly read as we do not know the size of the string
+} sp_toclient_access_denied;
+#define CMD_TOCLIENT_ACCESS_DENIED 0x0a
