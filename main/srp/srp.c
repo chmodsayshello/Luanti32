@@ -26,14 +26,7 @@
  *
  */
 
-// clang-format off
-#ifdef WIN32
-	#include <windows.h>
-	#include <wincrypt.h>
-#else
-	#include <time.h>
-#endif
-// clang-format on
+#include <time.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -43,6 +36,8 @@
 #include "sha/sha.h"
 
 #include "srp.h"
+
+#include <sys/random.h> // for esp32 random buffer
 #define CSRP_USE_SHA1
 #define CSRP_USE_SHA256
 
@@ -513,34 +508,12 @@ static SRP_Result calculate_H_AMK(SRP_HashAlgorithm alg, unsigned char *dest,
 	return SRP_OK;
 }
 
-
-#include <sys/random.h> // for esp32 random buffer
 static SRP_Result fill_buff()
 {
 	g_rand_idx = 0;
 
-#ifdef WIN32
-	HCRYPTPROV wctx;
-#else
-	//FILE *fp = 0;
-#endif
-
-#ifdef WIN32
-
-	if (!CryptAcquireContext(&wctx, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT))
-		return SRP_ERR;
-	if (!CryptGenRandom(wctx, sizeof(g_rand_buff), (BYTE *)g_rand_buff)) return SRP_ERR;
-	if (!CryptReleaseContext(wctx, 0)) return SRP_ERR;
-#else
-
 	getrandom(g_rand_buff, sizeof(g_rand_buff), 0);
-	/*fp = fopen("/dev/urandom", "r");
 
-	if (!fp) return SRP_ERR;
-
-	if (fread(g_rand_buff, sizeof(g_rand_buff), 1, fp) != 1) return SRP_ERR;
-	if (fclose(fp)) return SRP_ERR;*/
-#endif
 	return SRP_OK;
 }
 
@@ -822,14 +795,11 @@ struct SRPUser *srp_user_new(SRP_HashAlgorithm alg, SRP_NGType ng_type,
 	size_t uvlen = strlen(username_for_verifier) + 1;
 
 
-	puts("user");
 	if (!usr) goto err_exit;
 
 	if (init_random() != SRP_OK) /* Only happens once */
 		goto err_exit;
 	
-
-	puts("random success");
 
 
 	usr->hash_alg = alg;
