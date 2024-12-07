@@ -141,7 +141,7 @@ static void toserver_srp_bytes_a (LuantiClient* client, char* password, struct S
 static void receive_toclient_srp_bytes_s_b(LuantiClient* client, sp_toclient_srp_bytes_s_b* bytes_sb) {
     //Receive
     const size_t s_offset = sizeof(sp_pkt_header) + 2 * sizeof(uint16_t);
-    uint8_t* recvbuf = malloc(MAX_PKT_SIZE);
+    uint8_t* recvbuf = calloc(MAX_PKT_SIZE, 1);
     assert(recvbuf != NULL);
 
     cp_reliable_header* pkt_header = (cp_reliable_header*) recvbuf;
@@ -158,11 +158,13 @@ static void receive_toclient_srp_bytes_s_b(LuantiClient* client, sp_toclient_srp
 
     memcpy(bytes_sb, recvbuf, s_offset);
     bytes_sb->size_s = 16; //TEMP!
+    assert(sizeof(sp_toclient_srp_bytes_s_b) + bytes_sb->size_s < MAX_PKT_SIZE);
     bytes_sb->s = malloc(bytes_sb->size_s);
     assert(bytes_sb->s != NULL);
     memcpy(bytes_sb->s, recvbuf + s_offset, bytes_sb->size_s);
 
     bytes_sb->size_b = htons(*((uint16_t*) (recvbuf + s_offset + bytes_sb->size_s)));
+    assert(sizeof(sp_toclient_srp_bytes_s_b) + bytes_sb->size_s + bytes_sb->size_b < MAX_PKT_SIZE);
     bytes_sb->b = malloc(bytes_sb->size_b);
     assert(bytes_sb->b != NULL);
     memcpy(bytes_sb->b, recvbuf + s_offset + bytes_sb->size_s + sizeof(uint16_t), bytes_sb->size_b);
@@ -281,6 +283,10 @@ static void handle_toclient_chat_message(LuantiClient* client, void* buffer, siz
 
     sp_toclient_chat_message* chatpkt = (sp_toclient_chat_message*) buffer;
 
+    if (sizeof(sp_toclient_chat_message) + chatpkt->msg_len > size) {
+        perror("SIZE OF RECEIVED CHAT MESSAGE SMALLER THAN READ SIZE!");
+        return;
+    }
 
     wchar_t* msg;
 
