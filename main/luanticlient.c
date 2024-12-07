@@ -300,6 +300,29 @@ static void handle_toclient_chat_message(LuantiClient* client, void* buffer, siz
     }
 }
 
+static void handle_toclient_access_denied(LuantiClient* client, void* buffer, size_t size) {
+    LuantiClient_disconnect(client);
+
+    if (client->callbacks.onForcedDisconnect == NULL) {
+        return;
+    }
+
+    assert(size > sizeof(sp_toclient_access_denied));
+    sp_toclient_access_denied* pkt = (sp_toclient_access_denied*) buffer;
+    assert(sizeof(sp_toclient_access_denied) + sizeof(bool) + pkt->reason_str_len <= size);
+
+    // Save the boolean so we can safely overwrite it with a NULL-character
+    // => the reason string can be extracted and passed without copying.
+
+    bool reconnect = *(bool*) (buffer + size - 1);
+    *(char*) (buffer + size - 1) = '\0';
+
+    client->callbacks.onForcedDisconnect(client, (enum AccessDeniedCode) pkt->reason,
+        buffer + sizeof(sp_toclient_access_denied), pkt->reason_str_len,
+        reconnect
+    );
+}
+
 //   _______
 //__/Actions\___________________________________________________________
 void LuantiClient_send_chatmesage(LuantiClient* client, wchar_t* chatmessage) {
@@ -320,28 +343,4 @@ void LuantiClient_send_chatmesage(LuantiClient* client, wchar_t* chatmessage) {
 
     n_send(outbuff, sizeof(msg_pkt) + msg_pkt.len * sizeof(wchar_t), client->connection_fd);
     free(outbuff);
-}
-
-static void handle_toclient_access_denied(LuantiClient* client, void* buffer, size_t size) {
-    LuantiClient_disconnect(client);
-
-    if (client->callbacks.onForcedDisconnect == NULL) {
-        return;
-    }
-
-    assert(size > sizeof(sp_toclient_access_denied));
-    sp_toclient_access_denied* pkt = (sp_toclient_access_denied*) buffer;
-    memcpy(pkt, buffer, sizeof(sp_toclient_access_denied));
-    assert(sizeof(sp_toclient_access_denied) + sizeof(bool) + pkt->reason_str_len <= size);
-
-    // Save the boolean so we can safely overwrite it with a NULL-character
-    // => the reason string can be extracted and passed without copying.
-
-    bool reconnect = *(bool*) (buffer + size - 1);
-    *(char*) (buffer + size - 1) = '\0';
-
-    client->callbacks.onForcedDisconnect(client, (enum AccessDeniedCode) pkt->reason,
-        buffer + sizeof(sp_toclient_access_denied), pkt->reason_str_len,
-        reconnect
-    );
 }
