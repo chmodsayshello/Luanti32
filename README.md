@@ -2,6 +2,8 @@
 
 Luanti Clients... ON AN ESP32!
 
+Note: While even old WROOM-boards can handle can handle small minetest-game servers, I recommend you use an ESP32-S3. This essentially becomes a requirement once you wish to connect to Mineclonia servers.
+
 
 # DISCLAIMER
 This project is in a VERY early stage of development! Some, if not most portions of the code are extremly ugly and need a revamp (i.e. I made a mistake while parsing the SRP_S_B bytes and hardcoded size s to temporaily make this work).
