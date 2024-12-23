@@ -167,8 +167,10 @@ void onChatmessageReceive (struct LuantiClient* client, wchar_t* message, size_t
     wprintf(L"%ls\n", message);
 }
 
+#include "lwip/sockets.h"
+
 void app_main(void) {
-        esp_err_t ret = nvs_flash_init();
+    esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
       ESP_ERROR_CHECK(nvs_flash_erase());
       ret = nvs_flash_init();
@@ -186,12 +188,16 @@ void app_main(void) {
 
     LuantiClient_connect(client, PASSWORD, SERVER_IP, SERVER_PORT);
 
+    int rcvbuf_size = NETBUFF_MCLA; // Desired receive buffer size in bytes
+    int optlen = sizeof(rcvbuf_size);
+    setsockopt(client->connection_fd, SOL_SOCKET, SO_RCVBUF, &rcvbuf_size, optlen);
 
-    uint8_t* buff = malloc(512);
+    uint8_t* buff = malloc(1024);
     LuantiClient_send_chatmesage(client, L"Hello from minetest on the esp32!");
+
     while (client->connected)
     {
-        LuantiClient_tick(client, buff, 512);
+        LuantiClient_tick(client, buff, 1024);
     }
     free(buff);
     

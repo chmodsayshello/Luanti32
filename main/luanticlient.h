@@ -3,6 +3,11 @@
 
 #include <stdbool.h>
 
+#define NETBUFF_DEVTEST 0x14000
+#define NETBUFF_MT_GAME 0x1e000
+//Requires ESP32-S3; This may actually be more than needed (just used mt game * 3)
+#define NETBUFF_MCLA    0x5a000
+
 struct LuantiClient;
 enum AccessDeniedCode;
 

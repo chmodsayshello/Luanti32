@@ -3,7 +3,10 @@
 #define PACK __attribute__((__packed__)) 
 #define PKTSTRUCT typedef struct BIGE
 
+#define TYPE_SPLIT 2
 #define TYPE_RELIABLE 3
+
+#define BASE_HEADER_SIZE 7
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -17,6 +20,17 @@ PKTSTRUCT PACK sp_pkt_header {
     uint8_t type2;
 } sp_pkt_header;
 
+PKTSTRUCT PACK sp_pkt_split_header {
+    uint32_t protocol_id;
+    uint16_t sender_peer_id;
+    uint8_t channel;
+    uint8_t type;
+    uint16_t seqnum;
+    uint16_t chunk_count;
+    uint16_t chunk_num;
+    uint8_t type2;
+} sp_pkt_split_header;
+
 PKTSTRUCT sp_assign_peer_id {
     sp_pkt_header header;
     uint8_t controltype;
@@ -27,6 +41,11 @@ PKTSTRUCT PACK sp_generic_pkt {
     sp_pkt_header header;
     uint16_t command;
 } sp_generic_pkt;
+
+PKTSTRUCT PACK sp_generic_split_pkt {
+    sp_pkt_split_header header;
+    uint16_t command;
+} sp_generic_split_pkt;
 
 PKTSTRUCT PACK TOCLIENT_HELLO {
     sp_pkt_header header;

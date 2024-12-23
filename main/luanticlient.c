@@ -217,40 +217,41 @@ static void toserver_client_Ready(LuantiClient* client) {
 //   __________________________________
 //__/Packet Identification and handling\______________________________
 
-static void acknowledge_packet(LuantiClient* client, uint16_t seqnum);
+static void acknowledge_packet(LuantiClient* client, uint16_t seqnum, uint8_t channel);
 static void handle_toclient_chat_message(LuantiClient* client, void* buffer, size_t size, size_t total_size);
 static void handle_toclient_access_denied(LuantiClient* client, void* buffer, size_t size);
 
 void LuantiClient_tick(LuantiClient* client, void* buff, size_t max_len) {
-    if (!client->connected) {
+    if (!client->connected || max_len < sizeof(sp_generic_pkt)) {
         return;
     }
 
-    sp_generic_pkt* header;
-    size_t read_size;
-
-    read_size = n_read(buff, max_len, client->connection_fd);
-    if (read_size < sizeof(header)) {
-        // No valid data read
+    const size_t read_size = n_read(buff, max_len, client->connection_fd);
+    if (read_size < BASE_HEADER_SIZE) {
         return;
     }
 
-    header = buff;
+    sp_generic_pkt* header = buff;
+    const bool split = header->header.type == TYPE_SPLIT;
+    uint16_t command;
 
-    if (header->header.seqnum == client->last_acked) {
-        return;
+    if (header->header.protocol_id != PROTOCOL_ID) {
+       return;
     }
 
-    if (header->header.type != TYPE_RELIABLE || header->header.protocol_id != PROTOCOL_ID) {
-        // We do not care about the few scenarios in whcih the server might send an unreliable packet
-        return;
+    if (split) {
+        sp_generic_split_pkt* split_header = buff;
+        acknowledge_packet(client, split_header->header.seqnum, split_header->header.channel);
+        command = split_header->command;
+    } else if (header->header.type != TYPE_RELIABLE) {
+        header = buff + 2; // offset caused by the sequence number
+        command = header->command;
     } else {
-        // This only is in an else so there are no mistakes to be made if this ever were to handle
-        // unreliable packets
-        acknowledge_packet(client, header->header.seqnum);
+        acknowledge_packet(client, header->header.seqnum, header->header.channel);
+        command = header->command;
     }
 
-    switch (header->command) {
+    switch (command) {
     
     case CMD_TOCLIENT_CHAT_MESSAGE:
         handle_toclient_chat_message(client, buff, read_size, max_len);
@@ -262,12 +263,12 @@ void LuantiClient_tick(LuantiClient* client, void* buff, size_t max_len) {
     }
 }
 
-static void acknowledge_packet(LuantiClient* client, uint16_t seqnum) {
+static void acknowledge_packet(LuantiClient* client, uint16_t seqnum, uint8_t channel) {
     client->last_acked = seqnum;
     cp_reliable_ack pkt;
     pkt.protocol_id = PROTOCOL_ID;
     pkt.sender_peer_id = client->peer_id;
-    pkt.channel = 0;
+    pkt.channel = channel;
     pkt.type = TYPE_CONTROL;
     pkt.controltype = CONTROLTYPE_ACK;
     pkt.seqnum = seqnum;
