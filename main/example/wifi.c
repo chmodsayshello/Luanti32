@@ -1,77 +1,5 @@
-#include <stdio.h>
-#include "luanticlient.h"
-#include <wchar.h>
-
-
-
-#include <string.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/event_groups.h"
-#include "esp_system.h"
-#include "esp_wifi.h"
-#include "esp_event.h"
-#include "esp_log.h"
-#include "nvs_flash.h"
-
-#include "lwip/err.h"
-#include "lwip/sys.h"
-
-/* The examples use WiFi configuration that you can set via project configuration menu
-
-   If you'd rather not, just change the below entries to strings with
-   the config you want - ie #define EXAMPLE_WIFI_SSID "mywifissid"
-*/
-#define SERVER_PORT 7777
-#define SERVER_IP "IP GOES HERE"
-#define PLAYER_NAME "chmodsayshello"
-#define PASSWORD "123"
-
-#define EXAMPLE_ESP_WIFI_SSID      "YOUR SSID"
-#define EXAMPLE_ESP_WIFI_PASS      "YOUR PASSWORD"
-#define EXAMPLE_ESP_MAXIMUM_RETRY  5
-
-#if CONFIG_ESP_WPA3_SAE_PWE_HUNT_AND_PECK
-#define ESP_WIFI_SAE_MODE WPA3_SAE_PWE_HUNT_AND_PECK
-#define EXAMPLE_H2E_IDENTIFIER ""
-#elif CONFIG_ESP_WPA3_SAE_PWE_HASH_TO_ELEMENT
-#define ESP_WIFI_SAE_MODE WPA3_SAE_PWE_HASH_TO_ELEMENT
-#define EXAMPLE_H2E_IDENTIFIER CONFIG_ESP_WIFI_PW_ID
-#elif 1//CONFIG_ESP_WPA3_SAE_PWE_BOTH
-#define ESP_WIFI_SAE_MODE WPA3_SAE_PWE_BOTH
-#define EXAMPLE_H2E_IDENTIFIER ""
-#endif
-#if CONFIG_ESP_WIFI_AUTH_OPEN
-#define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_OPEN
-#elif CONFIG_ESP_WIFI_AUTH_WEP
-#define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WEP
-#elif CONFIG_ESP_WIFI_AUTH_WPA_PSK
-#define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WPA_PSK
-#elif 1//CONFIG_ESP_WIFI_AUTH_WPA2_PSK
-#define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WPA2_PSK
-#elif CONFIG_ESP_WIFI_AUTH_WPA_WPA2_PSK
-#define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WPA_WPA2_PSK
-#elif CONFIG_ESP_WIFI_AUTH_WPA3_PSK
-#define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WPA3_PSK
-#elif CONFIG_ESP_WIFI_AUTH_WPA2_WPA3_PSK
-#define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WPA2_WPA3_PSK
-#elif CONFIG_ESP_WIFI_AUTH_WAPI_PSK
-#define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WAPI_PSK
-#endif
-
-/* FreeRTOS event group to signal when we are connected*/
-static EventGroupHandle_t s_wifi_event_group;
-
-/* The event group allows multiple bits for each event, but we only care about two events:
- * - we are connected to the AP with an IP
- * - we failed to connect after the maximum amount of retries */
-#define WIFI_CONNECTED_BIT BIT0
-#define WIFI_FAIL_BIT      BIT1
-
-static const char *TAG = "wifi station";
-
-static int s_retry_num = 0;
-
+#include "wifi.h"
+#include <esp_log.h>
 
 static void event_handler(void* arg, esp_event_base_t event_base,
                                 int32_t event_id, void* event_data)
@@ -161,15 +89,7 @@ void wifi_init_sta(void)
     }
 }
 
-
-
-void onChatmessageReceive (struct LuantiClient* client, wchar_t* message, size_t msg_len) {
-    wprintf(L"%ls\n", message);
-}
-
-#include "lwip/sockets.h"
-
-void app_main(void) {
+void connect_wifi(void) {
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
       ESP_ERROR_CHECK(nvs_flash_erase());
@@ -179,28 +99,4 @@ void app_main(void) {
 
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     wifi_init_sta();
-
-
-    LuantiClient* client = calloc(1, sizeof(LuantiClient));
-    client->username = PLAYER_NAME;
-    client->username_len = strlen(PLAYER_NAME);
-    client->callbacks.onChatmessageReceive = &onChatmessageReceive;
-
-    LuantiClient_connect(client, PASSWORD, SERVER_IP, SERVER_PORT);
-
-    int rcvbuf_size = NETBUFF_MCLA; // Desired receive buffer size in bytes
-    int optlen = sizeof(rcvbuf_size);
-    setsockopt(client->connection_fd, SOL_SOCKET, SO_RCVBUF, &rcvbuf_size, optlen);
-
-    uint8_t* buff = malloc(1024);
-    LuantiClient_send_chatmesage(client, L"Hello from minetest on the esp32!");
-
-    while (client->connected)
-    {
-        LuantiClient_tick(client, buff, 1024);
-    }
-    free(buff);
-    
-
-    free(client);
 }
