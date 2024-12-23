@@ -264,7 +264,6 @@ void LuantiClient_tick(LuantiClient* client, void* buff, size_t max_len) {
 }
 
 static void acknowledge_packet(LuantiClient* client, uint16_t seqnum, uint8_t channel) {
-    client->last_acked = seqnum;
     cp_reliable_ack pkt;
     pkt.protocol_id = PROTOCOL_ID;
     pkt.sender_peer_id = client->peer_id;

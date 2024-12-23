@@ -27,7 +27,6 @@ typedef struct LuantiClient {
 
     uint16_t peer_id;
     uint16_t seqnum;
-    uint16_t last_acked;
 } LuantiClient;
 
 // See networkprotocol.h in minetest/luanti source code
