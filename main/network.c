@@ -6,16 +6,20 @@
 #define LWIP_IPV6 1
 #endif
 
-#include "lwip/sockets.h"
+#include <lwip/sockets.h>
+#include <netdb.h>
 
 bool n_connect(char* address, uint16_t port, conn_fd* fd) {
 #ifndef IPV6
     *fd = socket(AF_INET, SOCK_DGRAM, 0);
     
     struct sockaddr_in i_address;
+    struct hostent *host = gethostbyname(address);
+    if (host == NULL) {
+        return false;
+    }
 
-    i_address.sin_addr.s_addr = inet_addr(address);
-    puts(address);
+    i_address.sin_addr.s_addr = *(long *) host->h_addr_list[0];
     i_address.sin_port = htons(port);
     i_address.sin_family = AF_INET;
 

@@ -23,7 +23,7 @@
    the config you want - ie #define EXAMPLE_WIFI_SSID "mywifissid"
 */
 #define SERVER_PORT 7777
-#define SERVER_IP "IP GOES HERE AND NOT A DOMAIN!!! (support comming soon)"
+#define SERVER_IP "IP GOES HERE"
 #define PLAYER_NAME "chmodsayshello"
 #define PASSWORD "123"
 
