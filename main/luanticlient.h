@@ -12,7 +12,7 @@ struct LuantiClient;
 enum AccessDeniedCode;
 
 typedef struct LuantiCallbacks {
-    void (*onSeedReceive) (struct LuantiClient* client, uint64_t seed);
+    void (*onHpReceive) (struct LuantiClient* client, uint8_t hp);
     void (*onChatmessageReceive) (struct LuantiClient* client, wchar_t* message, size_t msg_len);
     void (*onForcedDisconnect) (struct LuantiClient* client, enum AccessDeniedCode code, char* reason, size_t reason_len, bool reconnect_suggested);
 } LuantiCallbacks;

@@ -260,6 +260,14 @@ void LuantiClient_tick(LuantiClient* client, void* buff, size_t max_len) {
     case CMD_TOCLIENT_ACCESS_DENIED:
         handle_toclient_access_denied(client, buff, read_size);
     break;
+
+    case CMD_TOCLIENT_HP:
+        if (client->callbacks.onHpReceive == NULL) {
+            break;
+        }
+        so_toclient_hp* hp_pkt = buff;
+        client->callbacks.onHpReceive(client, hp_pkt->hp);
+    break;
     }
 }
 

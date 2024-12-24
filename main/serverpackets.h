@@ -82,3 +82,9 @@ PKTSTRUCT PACK TOCLIENT_ACCESS_DENIED {
     // bool reconnect; // Can't be directly read as we do not know the size of the string
 } sp_toclient_access_denied;
 #define CMD_TOCLIENT_ACCESS_DENIED 0x0a
+
+PKTSTRUCT PACK TOCLIENT_HP {
+    sp_generic_pkt header;
+    uint8_t hp;
+} so_toclient_hp;
+#define CMD_TOCLIENT_HP 0x33
