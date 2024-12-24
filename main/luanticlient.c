@@ -358,3 +358,11 @@ void LuantiClient_send_chatmesage(LuantiClient* client, wchar_t* chatmessage) {
     n_send(outbuff, sizeof(msg_pkt) + msg_pkt.len * sizeof(wchar_t), client->connection_fd);
     free(outbuff);
 }
+
+void LuantiClient_respawn(LuantiClient* client) {
+    cp_reliable_header header;
+    cp_reliable_header_init(client, &header);
+    header.command = CMD_TOSERVER_RESPAWN_LEGACY;
+
+    n_send(&header, sizeof(header), client->connection_fd);
+}

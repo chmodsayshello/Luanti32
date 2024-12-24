@@ -79,3 +79,5 @@ PKTSTRUCT PACK TOSERVER_CHAT_MESSAGE {
     //wstring
 } cp_toserver_chat_message;
 #define COMMAND_CHAT_MSG 0x32
+
+#define CMD_TOSERVER_RESPAWN_LEGACY  0x38

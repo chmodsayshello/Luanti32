@@ -52,3 +52,4 @@ void LuantiClient_disconnect(LuantiClient* client);
 void LuantiClient_tick(LuantiClient* client, void* buff, size_t max_len);
 
 void LuantiClient_send_chatmesage(LuantiClient* client, wchar_t* chatmessage);
+void LuantiClient_respawn(LuantiClient* client);
