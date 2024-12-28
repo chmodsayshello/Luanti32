@@ -1,5 +1,6 @@
 #pragma once
 #include "network.h"
+#include "common.h"
 
 #include <stdbool.h>
 
@@ -12,10 +13,13 @@ struct LuantiClient;
 enum AccessDeniedCode;
 
 typedef struct LuantiCallbacks {
-    void (*onHpReceive) (struct LuantiClient* client, uint8_t hp);
+    void (*onHpReceive) (struct LuantiClient* client, uint16_t hp);
+	void (*onSeedReceive) (struct LuantiClient* client, uint64_t seed);
+	void (*onPosUpdate) (struct LuantiClient* client, float pitch, float yaw);
     void (*onChatmessageReceive) (struct LuantiClient* client, wchar_t* message, size_t msg_len);
     void (*onForcedDisconnect) (struct LuantiClient* client, enum AccessDeniedCode code, char* reason, size_t reason_len, bool reconnect_suggested);
 } LuantiCallbacks;
+
 
 typedef struct LuantiClient {
     LuantiCallbacks callbacks;
@@ -27,6 +31,7 @@ typedef struct LuantiClient {
 
     uint16_t peer_id;
     uint16_t seqnum;
+	v3f32 position;
 } LuantiClient;
 
 // See networkprotocol.h in minetest/luanti source code

@@ -220,6 +220,8 @@ static void toserver_client_Ready(LuantiClient* client) {
 static void acknowledge_packet(LuantiClient* client, uint16_t seqnum, uint8_t channel);
 static void handle_toclient_chat_message(LuantiClient* client, void* buffer, size_t size, size_t total_size);
 static void handle_toclient_access_denied(LuantiClient* client, void* buffer, size_t size);
+static void handle_toclient_auth_accept(LuantiClient* client, void* buffer, size_t size);
+static void handle_toclient_move_player(LuantiClient* client, void* buffer, size_t size);
 
 void LuantiClient_tick(LuantiClient* client, void* buff, size_t max_len) {
     if (!client->connected || max_len < sizeof(sp_generic_pkt)) {
@@ -265,8 +267,15 @@ void LuantiClient_tick(LuantiClient* client, void* buff, size_t max_len) {
         if (client->callbacks.onHpReceive == NULL) {
             break;
         }
-        so_toclient_hp* hp_pkt = buff;
-        client->callbacks.onHpReceive(client, hp_pkt->hp);
+        client->callbacks.onHpReceive(client, ((sp_toclient_hp*) buff)->hp);
+    break;
+
+    case CMD_TOCLIENT_AUTH_ACCEPT:
+        handle_toclient_auth_accept(client, buff, read_size);
+    break;
+
+    case CMD_TOCLIENT_MOVE_PLAYER:
+        handle_toclient_move_player(client, buff, read_size);
     break;
     }
 }
@@ -283,6 +292,7 @@ static void acknowledge_packet(LuantiClient* client, uint16_t seqnum, uint8_t ch
     n_send(&pkt, sizeof(pkt), client->connection_fd);
 }
 
+#define HANDLE_CHAT_NEW_HEAP_BUFF(total_size, size) total_size - size < 2
 static void handle_toclient_chat_message(LuantiClient* client, void* buffer, size_t size, size_t total_size) {
     if (client->callbacks.onChatmessageReceive == NULL || size < sizeof(sp_toclient_chat_message)) {
         // No handler, so no need to parse it properly...
@@ -298,7 +308,7 @@ static void handle_toclient_chat_message(LuantiClient* client, void* buffer, siz
 
     wchar_t* msg;
 
-    if (total_size - size < 2) {
+    if (HANDLE_CHAT_NEW_HEAP_BUFF(total_size, size)) {
         msg = calloc(chatpkt->msg_len + 1, sizeof(wchar_t));
         assert(msg != NULL);
         memcpy(msg, buffer + sizeof(sp_toclient_chat_message) + 1, chatpkt->msg_len * sizeof(wchar_t));
@@ -309,7 +319,7 @@ static void handle_toclient_chat_message(LuantiClient* client, void* buffer, siz
 
     client->callbacks.onChatmessageReceive(client, msg, chatpkt->msg_len);    
 
-    if (total_size - size < 2) {
+    if (HANDLE_CHAT_NEW_HEAP_BUFF(total_size, size)) {
         free(msg);
     }
 }
@@ -335,6 +345,38 @@ static void handle_toclient_access_denied(LuantiClient* client, void* buffer, si
         buffer + sizeof(sp_toclient_access_denied), pkt->reason_str_len,
         reconnect
     );
+}
+
+static void handle_toclient_auth_accept(LuantiClient* client, void* buffer, size_t size) {
+    if (size < sizeof(sp_toclient_auth_accept)) {
+        return;
+    }
+
+    if (client->callbacks.onSeedReceive == NULL) {
+        return;
+    }
+
+    sp_toclient_auth_accept* pkt = buffer;
+    client->callbacks.onSeedReceive(client, pkt->seed);
+}
+
+static void handle_toclient_move_player(LuantiClient* client, void* buffer, size_t size) {
+    if (size < sizeof(sp_toclient_move_player)) {
+        return;
+    }
+
+    sp_toclient_move_player* pkt = buffer;
+    client->position = pkt->pos;
+
+    client->position.x /= 10;
+    client->position.y /= 10;
+    client->position.z /= 10;
+
+    if (client->callbacks.onPosUpdate == NULL) {
+        return;
+    }
+
+    client->callbacks.onPosUpdate(client, pkt->pitch, pkt->yaw);
 }
 
 //   _______

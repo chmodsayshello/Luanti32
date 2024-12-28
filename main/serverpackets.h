@@ -1,5 +1,4 @@
 #pragma once
-#define BIGE __attribute__((scalar_storage_order("big-endian")))
 #define PACK __attribute__((__packed__)) 
 #define PKTSTRUCT typedef struct BIGE
 
@@ -10,6 +9,18 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "common.h"
+
+#ifndef BIGE
+#define BIGE __attribute__((scalar_storage_order("big-endian")))
+#endif
+
+PKTSTRUCT PACK sp_unreliable_pkt_header {
+    uint32_t protocol_id;
+    uint16_t sender_peer_id;
+    uint8_t channel;
+    uint8_t type;
+} sp_unreliable_pkt_header;
 
 PKTSTRUCT PACK sp_pkt_header {
     uint32_t protocol_id;
@@ -85,6 +96,22 @@ PKTSTRUCT PACK TOCLIENT_ACCESS_DENIED {
 
 PKTSTRUCT PACK TOCLIENT_HP {
     sp_generic_pkt header;
-    uint8_t hp;
-} so_toclient_hp;
+    uint16_t hp;
+} sp_toclient_hp;
 #define CMD_TOCLIENT_HP 0x33
+
+PKTSTRUCT PACK TOCLIENT_AUTH_ACCEPT {
+    sp_unreliable_pkt_header header;
+    uint16_t command;
+    uint8_t junk[0x0d];
+    uint64_t seed;
+} sp_toclient_auth_accept;
+#define CMD_TOCLIENT_AUTH_ACCEPT 0x03
+
+PKTSTRUCT PACK TOCLIENT_MOVE_PLAYER {
+    sp_generic_pkt header;
+    v3f32 pos;
+    float pitch;
+    float yaw;
+} sp_toclient_move_player;
+#define CMD_TOCLIENT_MOVE_PLAYER 0x34
