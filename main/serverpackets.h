@@ -1,3 +1,10 @@
+/**
+ * @file serverpackets.h
+ * @author chmodsayshello (chmodsayshello@hotmail.com)
+ * @brief serverpackets.h defines the layout of the packets the server is expected to send to the bot.
+ * @date 2024-12-30
+ */
+
 #pragma once
 #define PACK __attribute__((__packed__)) 
 #define PKTSTRUCT typedef struct BIGE

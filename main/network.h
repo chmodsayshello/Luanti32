@@ -1,3 +1,9 @@
+/**
+ * @file network.h
+ * @author chmodsayshello (chmodsayshello@hotmail.com)
+ * @brief network.h defines the interface the libary shall use to do any networking.
+ * @date 2024-12-30
+ */
 #pragma once
 
 #include "esp_netif.h"
@@ -6,7 +12,6 @@
 
 #define conn_fd int
 //#define IPV6 // Un-comment if needed
-
 
 bool n_connect(char* address, uint16_t port, conn_fd* fd);
 void n_disconnect(conn_fd fd);

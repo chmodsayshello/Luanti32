@@ -1,3 +1,9 @@
+/**
+ * @file clientpackets.h
+ * @author chmodsayshello (chmodsayshello@hotmail.com)
+ * @brief clientpackets.h defines the layout of the packets the bot may send to the server.
+ * @date 2024-12-30
+ */
 #pragma once
 #include <stdint.h>
 
