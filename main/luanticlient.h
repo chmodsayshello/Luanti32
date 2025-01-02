@@ -128,9 +128,6 @@ void LuantiClient_send_chatmesage(LuantiClient* client, wchar_t* chatmessage);
 /**
  * @brief LuantiClient_respawn respawns a client if dead in-game
  * 
- * This currently doesn't work on "modern" Luanti servers, as the legacy respawn packet
- * is now ignored.
- * 
  * @param client A pointer to the LuantiClient to respawn
  */
 void LuantiClient_respawn(LuantiClient* client);

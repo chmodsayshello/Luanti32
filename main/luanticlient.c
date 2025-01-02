@@ -42,6 +42,11 @@ void LuantiClient_disconnect(LuantiClient* client) {
     if (!client->connected) {
         return;
     }
+    cp_toserver_control pkt = CONTROL_TEMPLATE;
+    pkt.sender_peer_id = client->peer_id;
+    pkt.controlpacket = CONTROLTYPE_DISCO;
+    n_send(&pkt, sizeof(pkt), client->connection_fd);
+
     n_disconnect(client->connection_fd);
     client->connected = false;
 }

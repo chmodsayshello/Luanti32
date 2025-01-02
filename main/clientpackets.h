@@ -13,6 +13,7 @@
 #define SEQNUM_INITIAL 65500
 #define TYPE_CONTROL 0
 #define CONTROLTYPE_ACK 0
+#define CONTROLTYPE_DISCO 3
 
 #define BIGE __attribute__((scalar_storage_order("big-endian")))
 #define PACK __attribute__((__packed__)) 
@@ -87,3 +88,12 @@ PKTSTRUCT PACK TOSERVER_CHAT_MESSAGE {
 #define COMMAND_CHAT_MSG 0x32
 
 #define CMD_TOSERVER_RESPAWN_LEGACY  0x38
+
+PKTSTRUCT PACK TOSERVER_CONTROLPKT {
+    uint32_t protocol_id;
+    uint16_t sender_peer_id;
+    uint8_t channel;
+    uint8_t type;
+    uint8_t controlpacket;
+} cp_toserver_control;
+#define CONTROL_TEMPLATE {PROTOCOL_ID, 0, 0, TYPE_CONTROL, 0}
