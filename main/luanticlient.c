@@ -185,7 +185,7 @@ static void toserver_srp_bytes_m(LuantiClient* client, struct SRPUser* srpuser, 
         srpuser,
         sb->s, sb->size_s,
         sb->b, sb->size_b,
-        &bytes_m, &size_m
+        (unsigned char**) &bytes_m, &size_m
     );
 
     cp_toserver_srp_bytes_m bytes_m_pkt;
@@ -227,6 +227,7 @@ static void handle_toclient_chat_message(LuantiClient* client, void* buffer, siz
 static void handle_toclient_access_denied(LuantiClient* client, void* buffer, size_t size);
 static void handle_toclient_auth_accept(LuantiClient* client, void* buffer, size_t size);
 static void handle_toclient_move_player(LuantiClient* client, void* buffer, size_t size);
+static void handle_toclient_object_remove_add(LuantiClient* client, void* buffer, size_t size);
 
 void LuantiClient_tick(LuantiClient* client, void* buff, size_t max_len) {
     if (!client->connected || max_len < sizeof(sp_generic_pkt)) {
@@ -281,6 +282,10 @@ void LuantiClient_tick(LuantiClient* client, void* buff, size_t max_len) {
 
     case CMD_TOCLIENT_MOVE_PLAYER:
         handle_toclient_move_player(client, buff, read_size);
+    break;
+
+    case CMD_TOCLIENT_ACTIVE_OBJECT_REMOVE_ADD:
+        handle_toclient_object_remove_add(client, buff, read_size);
     break;
     }
 }
@@ -384,6 +389,43 @@ static void handle_toclient_move_player(LuantiClient* client, void* buffer, size
     client->callbacks.onPosUpdate(client, pkt->pitch, pkt->yaw);
 }
 
+static void handle_toclient_object_remove_add(LuantiClient* client, void* buffer, size_t size) {
+    if (client->callbacks.onObjectAdd == NULL) {
+        return;
+    }
+
+    sp_toclient_active_object_remove_add* pkt = buffer;
+    pkt += pkt->amount_removed * sizeof(uint16_t); // shift packet so that amount_added may be read.
+    void* mem_pos = pkt + sizeof(*pkt);
+    for (uint16_t i = 0; i < pkt->amount_received; i++) {
+        if (mem_pos - buffer > size) {
+            return;
+        }
+        
+        // let's get our hands even dirtier with super unsafe memory handling :D
+        object_data_header* data = mem_pos + sizeof(added_object);
+        register const uint16_t name_len = data->name_len;
+        const bool is_player = (data + name_len)->is_player;
+
+        if (!is_player) {
+            continue;
+        }
+
+        char* name = malloc(name_len + 1);
+        assert(name != NULL);
+        memcpy(name, data + OBJECT_DATA_NAME_OFFSET, name_len);
+        name[name_len] = 0x00;
+
+        // offset caused by the string.
+        data += name_len;
+
+        client->callbacks.onObjectAdd(client, name, name_len, data->id, data->position, is_player);
+
+        free(name);
+        mem_pos += sizeof(added_object) + ((added_object*) mem_pos)->init_data_length;
+    }
+}
+
 //   _______
 //__/Actions\___________________________________________________________
 void LuantiClient_send_chatmesage(LuantiClient* client, wchar_t* chatmessage) {
@@ -397,7 +439,7 @@ void LuantiClient_send_chatmesage(LuantiClient* client, wchar_t* chatmessage) {
     memcpy(outbuff, &msg_pkt, sizeof(msg_pkt));
 
     // We can't just memcpy as we need to invert the byte order of every character
-    wchar_t* writestr = outbuff + sizeof(msg_pkt);
+    wchar_t* writestr = (wchar_t*) (outbuff + sizeof(msg_pkt));
     for (uint16_t i = 0; i < msg_pkt.len; i++) {
         writestr[i] = htons(chatmessage[i]);
     }

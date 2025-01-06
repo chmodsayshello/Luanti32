@@ -122,3 +122,20 @@ PKTSTRUCT PACK TOCLIENT_MOVE_PLAYER {
     float yaw;
 } sp_toclient_move_player;
 #define CMD_TOCLIENT_MOVE_PLAYER 0x34
+
+PKTSTRUCT PACK added_object {
+    uint16_t id;
+    uint8_t type;
+    uint32_t init_data_length;
+    // string
+} added_object;
+
+PKTSTRUCT PACK TOCLIENT_ACTIVE_OBJECT_REMOVE_ADD {
+    sp_generic_pkt header;
+    uint16_t amount_removed;
+    // amount_removed * uint16_t    removed_id
+
+    uint16_t amount_received;
+} sp_toclient_active_object_remove_add;
+
+#define CMD_TOCLIENT_ACTIVE_OBJECT_REMOVE_ADD 0x31

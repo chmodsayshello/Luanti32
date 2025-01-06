@@ -9,6 +9,7 @@
 #include "common.h"
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #define NETBUFF_DEVTEST 0x14000
 #define NETBUFF_MT_GAME 0x1e000
@@ -34,6 +35,7 @@ typedef struct LuantiCallbacks {
 	void (*onPosUpdate) (struct LuantiClient* client, float pitch, float yaw);
     void (*onChatmessageReceive) (struct LuantiClient* client, wchar_t* message, size_t msg_len);
     void (*onForcedDisconnect) (struct LuantiClient* client, enum AccessDeniedCode code, char* reason, size_t reason_len, bool reconnect_suggested);
+	void (*onObjectAdd) (struct LuantiClient* client, char* name, uint16_t name_len, int16_t id, struct v3f32 position, bool is_player);
 } LuantiCallbacks;
 
 /**
